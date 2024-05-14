@@ -58,9 +58,6 @@ liters_label.pack(pady=10)
 liters_entry = tk.Entry(root, font=('Arial', 14), width=20)
 liters_entry.pack(pady=10)
 
-
-
-
 fuel_var = tk.StringVar(root)
 fuel_var.set('АИ-92: 40 руб.')  # Устанавливаем начальное значение с ценой
 fuel_option_menu = tk.OptionMenu(root, fuel_var, '')
