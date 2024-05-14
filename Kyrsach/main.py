@@ -1,81 +1,92 @@
 import tkinter as tk
+from tkinter import simpledialog
+
+# Функция для расчета цены
+def calculate_price():
+    try:
+        # Получаем количество литров и проверяем, что это число
+        liters = float(liters_entry.get())
+        # Получаем выбранную марку бензина и скидку
+        selected_fuel = fuel_var.get().split(':')[0]  # Извлекаем название марки
+        selected_discount = discount_var.get()
+        # Рассчитываем итоговую цену
+        price = liters * fuel_prices[selected_fuel] * (1 - discounts[selected_discount] / 100)
+        # Выводим цену
+        result_label.config(text=f"Итоговая цена: {price:.2f} руб.")
+    except ValueError:
+        result_label.config(text="Пожалуйста, введите корректное число литров.")
+
+# Функция для добавления новой марки бензина
+def add_fuel():
+    new_fuel = simpledialog.askstring("Добавить марку бензина", "Введите название марки:")
+    new_price = simpledialog.askfloat("Добавить марку бензина", "Введите цену за литр:")
+    if new_fuel and new_price:
+        if (new_fuel not in fuel_prices) or (new_fuel in fuel_prices and fuel_prices[new_fuel] != new_price):
+            fuel_prices[new_fuel] = new_price
+            update_fuel_menu()  # Обновляем меню после добавления новой марки
+        else:
+            result_label.config(text= "Такая марка уже существует!")
+
+# Функция для обновления меню марок бензина
+def update_fuel_menu():
+    menu = fuel_option_menu["menu"]
+    menu.delete(0, "end")
+    for fuel, price in fuel_prices.items():
+        menu.add_command(label=f"{fuel}: {price} руб.", command=lambda value=fuel: fuel_var.set(f"{value}: {price} руб."))
+
+# Функция для добавления новой скидки
+def add_discount():
+    new_discount = simpledialog.askinteger("Добавить скидку", "Введите процент скидки:")
+    if new_discount is not None and f"{new_discount}%" not in discounts:
+        discounts[f"{new_discount}%"] = new_discount
+        discount_option_menu['menu'].add_command(label=f"{new_discount}%", command=tk._setit(discount_var, f"{new_discount}%"))
+    else:
+        result_label.config(text= "Такая скидка уже существует!")
+# Начальные данные
+fuel_prices = {'АИ-92': 40.0, 'АИ-95': 45.0, 'АИ-98': 50.0}
+discounts = {'0%': 0, '5%': 5, '10%': 10}
+
+# Создаем главное окно
 root = tk.Tk()
-root.title("Калькулятор стоимости бензина")
-root.configure(bg='light grey')
-root.geometry("400x400")
+root.title("Расчет стоимости бензина")
+root.geometry("430x700")  # Увеличиваем размер окна
 
-def calculate_price():
-    liters = float(entry_liters.get())
-    price_per_liter = 0
-    if var.get() == 1:
-        price_per_liter = 53.59   # Цена за литр бензина марки Аи-92
-    elif var.get() == 2:
-        price_per_liter = 59.89   # Цена за литр бензина марки Аи-95
-    elif var.get() == 3:
-        price_per_liter = 63.92   # Цена за литр бензина марки ДТ
+# Поля ввода и выбора
+liters_label = tk.Label(root, text="Количество литров:", font=('Arial', 14))
+liters_label.pack(pady=10)
 
-    discount = 0
-    if card_var.get() == 1:
-        discount = 0.05  # Обычная скидка 5%
-    elif card_var.get() == 2:
-        discount = 0.1  # Золотая скидка 10%
-    elif card_var.get() == 3:
-        discount = 0.15  # Платиновая скидка 15%
+liters_entry = tk.Entry(root, font=('Arial', 14), width=20)
+liters_entry.pack(pady=10)
 
-    total_price = liters * price_per_liter * (1 - discount)
-    label_result.config(text="Итоговая цена: {:.2f} руб.".format(total_price))
 
-label_liters = tk.Label(root, text="Введите количество литров бензина:", bg='light grey', fg='black', font=("Arial", 12))
-label_liters.pack()
-entry_liters = tk.Entry(root, font=("Arial", 12))
-entry_liters.pack()
-label_mark = tk.Label(root, text="Выберите марку бензина:", bg='light grey', fg='black', font=("Arial", 12))
-label_mark.pack()
-var = tk.IntVar()
-tk.Radiobutton(root, text="Аи-92 - 53.59 руб./л", variable=var, value=1, bg='light grey', fg='black', font=("Arial", 12)).pack()
-tk.Radiobutton(root, text="Аи-95 - 59.89 руб./л", variable=var, value=2, bg='light grey', fg='black', font=("Arial", 12)).pack()
-tk.Radiobutton(root, text="ДТ - 63.92 руб./л", variable=var, value=3, bg='light grey', fg='black', font=("Arial", 12)).pack()
-label_card = tk.Label(root, text="Выберите вашу скидочную карту:", bg='light grey', fg='black', font=("Arial", 12))
-label_card.pack()
-card_var = tk.IntVar()
-tk.Radiobutton(root, text="Обычная - 5% скидка", variable=card_var, value=1, bg='light grey', fg='black', font=("Arial", 12)).pack()
-tk.Radiobutton(root, text="Золотая - 10% скидка", variable=card_var, value=2, bg='light grey', fg='black', font=("Arial", 12)).pack()
-tk.Radiobutton(root, text="Платиновая - 15% скидка", variable=card_var, value=3, bg='light grey', fg='black', font=("Arial", 12)).pack()
-btn_calculate = tk.Button(root, text="Рассчитать", command=calculate_price, bg='grey', fg='white', font=("Arial", 12))
-btn_calculate.pack()
-label_result = tk.Label(root, text="", bg='light grey', fg='black', font=("Arial", 12))
-label_result.pack()
 
-def clear_window(root):
-    for widget in root.winfo_children():
-        widget.destroy()
 
-btn_clear = tk.Button(root, text="Изменить данные", command=lambda: [clear_window(root), init_window()], bg='grey', fg='white', font=("Arial", 12))
-btn_clear.pack()
+fuel_var = tk.StringVar(root)
+fuel_var.set('АИ-92: 40 руб.')  # Устанавливаем начальное значение с ценой
+fuel_option_menu = tk.OptionMenu(root, fuel_var, '')
+fuel_option_menu.config(width=20, height=2, font=('Arial', 14))
+fuel_option_menu.pack(pady=20)
+update_fuel_menu()  # Вызываем функцию для инициализации меню
 
-def init_window():
-    label_liters = tk.Label(root, text="Введите количество литров бензина:", bg='light grey', fg='black', font=("Arial", 12))
-    label_liters.pack()
-    entry_liters = tk.Entry(root, font=("Arial", 12))
-    entry_liters.pack()
-    label_price = tk.Label(root, text="Введите цену за литр бензина:", bg='light grey', fg='black', font=("Arial", 12))
-    label_price.pack()
-    entry_price = tk.Entry(root, font=("Arial", 12))
-    entry_price.pack()
-    label_discount = tk.Label(root, text="Введите скидку по карте (в процентах):", bg='light grey', fg='black', font=("Arial", 12))
-    label_discount.pack()
-    entry_discount = tk.Entry(root, font=("Arial", 12))
-    entry_discount.pack()
-    btn_calculate = tk.Button(root, text="Рассчитать", command=calculate_price, bg='grey', fg='white', font=("Arial", 12))
-    btn_calculate.pack()
-    label_result = tk.Label(root, text="", bg='light grey', fg='black', font=("Arial", 12))
-    label_result.pack()
+discount_var = tk.StringVar(root)
+discount_var.set('0%')
+discount_option_menu = tk.OptionMenu(root, discount_var, *discounts.keys())
+discount_option_menu.config(width=20, height=2, font=('Arial', 14))
+discount_option_menu.pack(pady=20)
 
-# Измените функцию calculate_price, чтобы она использовала новые входные данные
-def calculate_price():
-    liters = float(entry_liters.get())
-    price_per_liter = float(entry_price.get())
-    discount = float(entry_discount.get())
-    total_price = liters * price_per_liter * (1 - discount)
-    label_result.config(text="Итоговая цена: {:.2f} руб.".format(total_price))
+# Кнопки
+calculate_button = tk.Button(root, text="Рассчитать", command=calculate_price, font=('Arial', 14), width=20, height=2)
+calculate_button.pack(pady=20)
+
+add_fuel_button = tk.Button(root, text="Добавить марку бензина", command=add_fuel, font=('Arial', 14), width=20, height=2)
+add_fuel_button.pack(pady=20)
+
+add_discount_button = tk.Button(root, text="Добавить скидку", command=add_discount, font=('Arial', 14), width=20, height=2)
+add_discount_button.pack(pady=20)
+
+# Метка для вывода результата
+result_label = tk.Label(root, text="Итоговая цена: ", font=('Arial', 14))
+result_label.pack(pady=20)
+
+# Запускаем главный цикл
 root.mainloop()
